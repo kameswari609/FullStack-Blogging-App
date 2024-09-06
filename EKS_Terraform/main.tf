@@ -1,20 +1,20 @@
 provider "aws" {
-  region = "ap-south-1"
+  region = "us-east-1"
 }
 
-resource "aws_vpc" "devopsshack_vpc" {
+resource "aws_vpc" "multitier_vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "devopsshack-vpc"
+    Name = "multitier-vpc"
   }
 }
 
 resource "aws_subnet" "devopsshack_subnet" {
   count = 2
   vpc_id                  = aws_vpc.devopsshack_vpc.id
-  cidr_block              = cidrsubnet(aws_vpc.devopsshack_vpc.cidr_block, 8, count.index)
-  availability_zone       = element(["ap-south-1a", "ap-south-1b"], count.index)
+  cidr_block              = cidrsubnet(aws_vpc.multitier_vpc.cidr_block, 8, count.index)
+  availability_zone       = element(["us-east-1a", "us-east-1b"], count.index)
   map_public_ip_on_launch = true
 
   tags = {
@@ -23,7 +23,7 @@ resource "aws_subnet" "devopsshack_subnet" {
 }
 
 resource "aws_internet_gateway" "devopsshack_igw" {
-  vpc_id = aws_vpc.devopsshack_vpc.id
+  vpc_id = aws_vpc.multitier_vpc.id
 
   tags = {
     Name = "devopsshack-igw"
@@ -31,7 +31,7 @@ resource "aws_internet_gateway" "devopsshack_igw" {
 }
 
 resource "aws_route_table" "devopsshack_route_table" {
-  vpc_id = aws_vpc.devopsshack_vpc.id
+  vpc_id = aws_vpc.multitier_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -50,7 +50,7 @@ resource "aws_route_table_association" "a" {
 }
 
 resource "aws_security_group" "devopsshack_cluster_sg" {
-  vpc_id = aws_vpc.devopsshack_vpc.id
+  vpc_id = aws_vpc.multitier_vpc.id
 
   egress {
     from_port   = 0
@@ -65,7 +65,7 @@ resource "aws_security_group" "devopsshack_cluster_sg" {
 }
 
 resource "aws_security_group" "devopsshack_node_sg" {
-  vpc_id = aws_vpc.devopsshack_vpc.id
+  vpc_id = aws_vpc.multitier_vpc.id
 
   ingress {
     from_port   = 0
